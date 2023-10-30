@@ -1,5 +1,11 @@
 from itertools import combinations
-from simpleai.search import CspProblem, backtrack
+from simpleai.search import (
+    CspProblem,
+    backtrack,
+    min_conflicts,
+    MOST_CONSTRAINED_VARIABLE,
+    LEAST_CONSTRAINING_VALUE,
+)
 
 """ 
 Las piezas claramente no deben estar superpuestas entre si. ✅
@@ -209,7 +215,10 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
     problem = CspProblem(variables, dominio, restricciones)
 
     # Resuelve el problema utilizando el algoritmo de backtrack
-    result = backtrack(problem)
+    #result = backtrack(problem, variable_heuristic=MOST_CONSTRAINED_VARIABLE, value_heuristic=LEAST_CONSTRAINING_VALUE)
+
+    # Resuelve el problema utilizando el algoritmo de min_conflicts
+    result = min_conflicts(problem)
 
     if result is not None:
         print("Solución encontrada:")
@@ -221,10 +230,11 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
         print("No se encontró solución que cumpla con las restricciones.")
         return None
 
-if __name__ == "__main__":
-    armar_tablero()
 
-""" 
+if __name__ == "__main__":
+    armar_tablero() 
+
+"""
 # Pruebas de la función armar_tablero
 
 armar_tablero(
@@ -242,5 +252,4 @@ armar_tablero(
     ],
     pieza_sacar="pieza_roja",
 )
-
 """

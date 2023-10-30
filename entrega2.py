@@ -102,8 +102,8 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
 
     # Función que verifica si una pieza está en el mismo piso que la salida
     def no_en_mismo_piso(variables, valores):
-        variable_a_sacar = variables[0]
-        pieza_cualquiera = valores[0]
+        variable_a_sacar, = variables
+        pieza_cualquiera, = valores
         piso_salida, _, _ = salida
 
         if variable_a_sacar == pieza_sacar:
@@ -114,14 +114,12 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
 
         return True
 
-    for pieza in combinations(variables, 1):
-        restricciones.append(
-            ((pieza), no_en_mismo_piso)
-        )
+    for pieza in variables:
+        restricciones.append(((pieza, ), no_en_mismo_piso))
 
     # Función que verifica si una pieza está en el mismo casillero que la salida
     def no_en_mismo_casillero(variables, valores):
-        partes_pieza_cualquiera = valores[0]
+        partes_pieza_cualquiera,  = valores
         _, fila_salida, columna_salida = salida
 
         for parte in partes_pieza_cualquiera:
@@ -132,10 +130,8 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
 
         return True
 
-    for pieza in combinations(variables, 1):
-        restricciones.append(
-            ((pieza), no_en_mismo_casillero)
-        )
+    for pieza in variables:
+        restricciones.append(((pieza, ), no_en_mismo_casillero))
 
     # Función que verifica que todas las piezas estén en pisos distintos
     def todos_pisos_con_piezas(variables, valores):
@@ -219,9 +215,11 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
         print("Solución encontrada:")
         for variable in result:
             print(variable, ":", result[variable])
+
+        return result
     else:
         print("No se encontró solución que cumpla con las restricciones.")
-
+        return None
 
 if __name__ == "__main__":
     armar_tablero()

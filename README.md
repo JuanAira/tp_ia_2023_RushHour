@@ -3,7 +3,7 @@
 Trabajo práctico para la materia de inteligencia artificial
 
 #### Pieza a sacar = roja 😄
-![rush-hour-beginner-puzzle-animation-small](https://github.com/JuanAira/tp_ia_2023_RushHour/assets/38301375/0616afb8-ac99-45a9-909e-b3084921d6da)
+![rush-hour-beginner-puzzle-animation-small](https://github.com/JuanAira/tp_ia_2023_RushHour/assets/38301375/972968bc-085a-47a2-93b2-1907963c3439)
 
 
 ## Integrantes

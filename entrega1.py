@@ -43,9 +43,10 @@ class ProblemaRushHour(SearchProblem):
         self.max_columnas = max_columnas
         super().__init__(INITIAL)
 
+
+
     def is_goal(self, state):
         tableros = convert_state_to_list(state)
-
         piso_salida, fila_salida, columna_salida = self.salida
         
         # Obtenemos el tablero del piso actual.
@@ -53,6 +54,9 @@ class ProblemaRushHour(SearchProblem):
 
         # Si la pieza objetivo está en la salida, entonces termina el juego.
         return tablero_salida[fila_salida][columna_salida] == self.pieza_sacar
+
+
+
 
     def actions(self, state):
         acciones_disponibles = []
@@ -70,9 +74,15 @@ class ProblemaRushHour(SearchProblem):
 
         return acciones_disponibles
 
+
+
+
     def cost(self, state1, action, state2):
         # Costo uniforme para todas las acciones
         return 1
+
+
+
 
     def result(self, state, accion):
         tableros = convert_state_to_list(state)
@@ -80,15 +90,18 @@ class ProblemaRushHour(SearchProblem):
 
         pieza_encontrada = encontrar_pieza(tableros, pieza_id)
 
-        self.mover_pieza(
+        tablero_actualizado = self.mover_pieza(
             tableros, 
             pieza_id, 
             pieza_encontrada, 
             direccion,
         )
 
-        return convert_state_to_tuple(tableros)
+        return convert_state_to_tuple(tablero_actualizado)
 
+
+
+    # Funcion que nos permite determinar si un movimiento es válido o no.
     def movimiento_valido(
         self, 
         estado, 
@@ -107,55 +120,59 @@ class ProblemaRushHour(SearchProblem):
         partes = info_pieza['partes']
 
         # Verificamos si el movimiento es válido según las reglas del juego.
+
         if movimiento == "arriba":
+            # Comprobamos si alguna parte de la pieza está en la fila superior
+            if any(fila == 0 for fila, _ in partes):
+                return False
+
+            # Comprobamos si alguna parte de la pieza se superpone con otra pieza en la dirección arriba
             for fila, columna in partes:
-                if fila == 0:
+                valor_obtenido = tableros[piso_actual][fila - 1][columna]
+                if valor_obtenido is not None and valor_obtenido != pieza['id']:
                     return False
 
-                # Obtengo el valor del casillero: ya sea None o una pieza
-                valor_obtenido = tableros[piso_actual][fila - 1][columna] 
-                if valor_obtenido != pieza['id'] and valor_obtenido is not None:
-                    return False
             return True
 
         elif movimiento == "abajo":
+            # Comprobamos si alguna parte de la pieza está en la última fila
+            if any(fila == max_filas - 1 for fila, _ in partes):
+                return False
+
+            # Comprobamos si alguna parte de la pieza se superpone con otra pieza en la dirección abajo
             for fila, columna in partes:
-
-                # Si llegamos a la maxima fila no podemos bajar mas
-                # porque nos salimos del tablero
-                if fila == max_filas - 1:
+                valor_obtenido = tableros[piso_actual][fila + 1][columna]
+                if valor_obtenido is not None and valor_obtenido != pieza['id']:
                     return False
 
-                # Obtengo el valor del casillero: ya sea None o una pieza
-                valor_obtenido = tableros[piso_actual][fila + 1][columna] 
-                if valor_obtenido != pieza['id'] and valor_obtenido is not None:
-                    return False
             return True
+
 
         elif movimiento == "izquierda":
+            # Comprobamos si alguna parte de la pieza está en la columna más a la izquierda
+            if any(columna == 0 for fila, columna in partes):
+                return False
+
+            # Comprobamos si alguna parte de la pieza se superpone con otra pieza en la dirección izquierda
             for fila, columna in partes:
-                # Si la columna es 0 no podemos ir mas a la izquierda
-                if columna == 0:
+                valor_obtenido = tableros[piso_actual][fila][columna - 1]
+                if valor_obtenido is not None and valor_obtenido != pieza['id']:
                     return False
 
-                # Obtengo el valor del casillero: ya sea None o una pieza
-                valor_obtenido = tableros[piso_actual][fila][columna - 1]
-                if valor_obtenido != pieza['id'] and valor_obtenido is not None:
-                    return False
             return True
 
+
         elif movimiento == "derecha":
-            for parte in partes:
-                fila, columna = parte
+            # Comprobamos si alguna parte de la pieza está en la columna más a la derecha
+            if any(columna == max_column - 1 for fila, columna in partes):
+                return False
 
-                # Si llegamos al maximo de columna no podemos ir mas para la derecha
-                if columna == max_column - 1:
-                    return False
-
-                # Obtengo el valor del casillero: ya sea None o una pieza
+            # Comprobamos si alguna parte de la pieza se superpone con otra pieza en la dirección derecha
+            for fila, columna in partes:
                 valor_obtenido = tableros[piso_actual][fila][columna + 1]
-                if valor_obtenido != pieza['id'] and valor_obtenido is not None:
+                if valor_obtenido is not None and valor_obtenido != pieza['id']:
                     return False
+
             return True
 
         elif movimiento == "trepar":
@@ -163,27 +180,30 @@ class ProblemaRushHour(SearchProblem):
             if piso_actual == len(tableros) - 1:
                 return False  
 
-            for parte in partes:
-                fila, columna = parte
-
-                # No se puede trepar si hay obstáculos en el piso superior.
+            # Comprobamos si alguna parte de la pieza se superpone con otra pieza en el piso superior
+            for fila, columna in partes:
                 if tableros[piso_actual + 1][fila][columna] is not None:
                     return False
+
             return True
 
         elif movimiento == "caer":
-            # No se puede caer desde el piso más bajo.
+            # Comprobamos si se está en el piso más bajo
             if piso_actual == 0:
                 return False  
 
-            for parte in partes:
-                fila, columna = parte
-
-                # No se puede caer si hay obstáculos en el piso inferior.
-                if tableros[piso_actual - 1][fila][columna] is not None:
+            # Comprobamos si alguna parte de la pieza se superpone con otra pieza en el piso inferior
+            for fila, columna in partes:
+                valor_obtenido = tableros[piso_actual - 1][fila][columna]
+                if valor_obtenido is not None:
                     return False
+
             return True
 
+
+
+
+    # Función que nos permite mover una pieza en el tablero.
     def mover_pieza(
             self, 
             estado, 
@@ -195,33 +215,37 @@ class ProblemaRushHour(SearchProblem):
         piso = pieza_encontrada[pieza]['piso']
         partes = pieza_encontrada[pieza]['partes']
 
-        # Actualizo el valor de la pieza con None en el tablero
+        # Actualizamos el valor de la pieza con None en el tablero
         for fila, columna in partes:
             estado[piso][fila][columna] = None
 
         if direccion == 'arriba':
-            partes = [(parte[0] - 1, parte[1]) for parte in partes]
+            partes = [(fila - 1, columna) for fila, columna in partes]
 
         elif direccion == 'abajo':
-            partes = [(parte[0] + 1, parte[1]) for parte in partes]
+            partes = [(fila + 1, columna) for fila, columna in partes]
 
         elif direccion == 'izquierda':
-            partes = [(parte[0], parte[1] - 1) for parte in partes]
+            partes = [(fila, columna - 1) for fila, columna in partes]
 
         elif direccion == 'derecha':
-            partes = [(parte[0], parte[1] + 1) for parte in partes]
+            partes = [(fila, columna + 1) for fila, columna in partes]
 
         elif direccion == 'trepar':
-            partes = [(parte[0], parte[1]) for parte in partes]
+            partes = [(fila, columna) for fila, columna in partes]
             piso += 1
 
         elif direccion == 'caer':
-            partes = [(parte[0], parte[1]) for parte in partes]
+            partes = [(fila, columna) for fila, columna in partes]
             piso -= 1
 
-        # Coloco el id de la pieza en la nueva posicion
+        # Colocamos el id de la pieza en la nueva posicion
         for fila, columna in partes:
             estado[piso][fila][columna] = pieza
+
+        return estado
+
+
 
     def heuristic(self, estado):
         tableros = convert_state_to_list(estado)
@@ -233,26 +257,24 @@ class ProblemaRushHour(SearchProblem):
         # Posición de la salida
         piso_salida, fila_salida, columna_salida = self.salida
 
-        dist_horizontal = []
-
-        for fila, columna in partes:
-            dist_horizontal.append(abs(fila - fila_salida) + abs(columna - columna_salida))
+        # Calcular distancias horizontales
+        dist_horizontal = [abs(fila - fila_salida) + abs(columna - columna_salida) for fila, columna in partes]
 
         dist_vertical = abs(piso - piso_salida)
 
         # Minima distancia horizontal + delta vertical
         return min(dist_horizontal) + dist_vertical
 
-def initial_state(filas, columnas, pisos, piezas):
-    # Crea una matriz con el tamaño de filas, columnas y pisos y llena cada celda con None
-    tableros = [[[None for _ in range(columnas)]
-                 for _ in range(filas)] for _ in range(pisos)]
 
-    # Llena la matriz con los colores de las piezas en sus posiciones correspondientes
+def initial_state(filas, columnas, pisos, piezas):
+    # Creamos una matriz con el tamaño de filas, columnas y pisos y llena cada celda con None
+    tableros = [[[None for _ in range(columnas)] for _ in range(filas)] for _ in range(pisos)]
+
+    # Llenamos la matriz con los colores de las piezas en sus posiciones correspondientes
     for pieza in piezas:
         piso = pieza['piso']
         for fila, columna in pieza['partes']:
-            # Asigna el color de la pieza a la celda en el piso correspondiente
+            # Asignamos el color de la pieza a la celda en el piso correspondiente
             tableros[piso][fila][columna] = pieza['id']
 
     return convert_state_to_tuple(tableros)
@@ -261,7 +283,7 @@ def initial_state(filas, columnas, pisos, piezas):
 def jugar(filas, columnas, pisos, salida, piezas, pieza_sacar):
     INITIAL = initial_state(filas, columnas, pisos, piezas)
 
-    # Instanciar la clase ProblemaRushHour
+    # Instancia ProblemaRushHour
     my_problem = ProblemaRushHour(
         INITIAL,
         piezas,
@@ -275,24 +297,25 @@ def jugar(filas, columnas, pisos, salida, piezas, pieza_sacar):
     result = astar(my_problem)
 
     if result is None:
-        print("No solution")
+        # No se encontró solución
+        print("🚀 ~ file: entrega1.py:302 ~ result:", result)
+
         return []
     else:
-        # Imprimir la solución
-        result_list = []
-        for action, state in result.path():
-            if action is not None:
-                result_list.append(action)
-        print(result_list)
+        result_list = [action for action, state in result.path() if action is not None]
+        
+        print("🚀 ~ file: entrega1.py:308 ~ result_list:", result_list)
         return result_list
 
+
+
+
 if __name__ == "__main__":
-    jugar()
+    jugar() 
+
 
 
 """ 
-# Formato ultimo test
-
 jugar(
     filas=3,
     columnas=4,

@@ -24,46 +24,36 @@ de los casilleros de ese piso (por ejemplo, en un piso de 3x4, es decir, 12 casi
 ocupados con piezas en ese piso puede ser de hasta 8 casilleros, pero ya no 9 casilleros). ✅
 """
 
-cantidad_casilleros_por_pieza = [
-    (['L', 'T', 'O', 'Z'], 4),
-    (['I', '-'], 3),
-    (['.'], 1),
-]
+CANTIDAD_CASILLEROS_POR_PIEZA = {
+  "L": 4,
+  "T": 4,
+  "O": 4,
+  "Z": 4,
+  "-": 3,
+  "I": 3,
+  ".": 1
+}
+
 
 # Función que devuelve las posibles coordenadas de una pieza
 def posibles_coordenadas_por_forma(forma, pisos_range, filas_range, columnas_range, filas, columnas):
     posibles_coordenadas = []
 
+    forma_condiciones = {
+        ".": lambda fila, columna: True,
+        "L": lambda fila, columna: columna + 1 < columnas and fila + 1 < filas,
+        "T": lambda fila, columna: columna + 2 < columnas and fila + 1 < filas,
+        "O": lambda fila, columna: columna + 1 < columnas and fila + 1 < filas,
+        "I": lambda fila, columna: fila + 2 < columnas,
+        "-": lambda fila, columna: columna + 2 < columnas,
+        "Z": lambda fila, columna: columna + 2 < columnas and fila + 1 < filas,
+    }
+
     for piso in pisos_range:
         for fila in filas_range:
             for columna in columnas_range:
-
-                if forma == ".":
+                if forma_condiciones.get(forma, lambda x, y: False)(fila, columna):
                     posibles_coordenadas.append((piso, fila, columna))
-
-                elif forma == "L":
-                    if columna + 1 < columnas and fila + 1 < filas:
-                        posibles_coordenadas.append((piso, fila, columna))
-
-                elif forma == "T":
-                    if columna + 2 < columnas and fila + 1 < filas:
-                        posibles_coordenadas.append((piso, fila, columna))
-
-                elif forma == "O":
-                    if columna + 1 < columnas and fila + 1 < filas:
-                        posibles_coordenadas.append((piso, fila, columna))
-
-                elif forma == "I":
-                    if fila + 2 < columnas:
-                        posibles_coordenadas.append((piso, fila, columna))
-
-                elif forma == "-":
-                    if columna + 2 < columnas:
-                        posibles_coordenadas.append((piso, fila, columna))
-
-                elif forma == "Z":
-                    if columna + 2 < columnas and fila + 1 < filas:
-                        posibles_coordenadas.append((piso, fila, columna))
 
     return posibles_coordenadas
 
@@ -71,46 +61,29 @@ def posibles_coordenadas_por_forma(forma, pisos_range, filas_range, columnas_ran
 
 # Función que genera las coordenadas de una pieza
 def generar_pieza(forma, coordenada_inicio):
-    coordenadas = []
-
+    coordenadas = [coordenada_inicio]
     piso, fila, columna = coordenada_inicio
 
-    coordenadas.append((piso, fila, columna))
-
     if forma == "L":
-        coordenadas.append((piso, fila + 1, columna))
-        coordenadas.append((piso, fila + 1, columna + 1))
-
+        coordenadas.extend([(piso, fila + 1, columna), (piso, fila + 1, columna + 1)])
     elif forma == "T":
-        coordenadas.append((piso, fila, columna + 1))
-        coordenadas.append((piso, fila, columna + 2))
-        coordenadas.append((piso, fila + 1, columna + 1))
-
+        coordenadas.extend([(piso, fila, columna + 1), (piso, fila, columna + 2), (piso, fila + 1, columna + 1)])
     elif forma == "O":
-        coordenadas.append((piso, fila, columna + 1))
-        coordenadas.append((piso, fila + 1, columna))
-        coordenadas.append((piso, fila + 1, columna + 1))
-
+        coordenadas.extend([(piso, fila, columna + 1), (piso, fila + 1, columna), (piso, fila + 1, columna + 1)])
     elif forma == "I":
-        coordenadas.append((piso, fila + 1, columna))
-        coordenadas.append((piso, fila + 2, columna))
-
+        coordenadas.extend([(piso, fila + 1, columna), (piso, fila + 2, columna)])
     elif forma == "-":
-        coordenadas.append((piso, fila, columna + 1))
-        coordenadas.append((piso, fila, columna + 2))
-
+        coordenadas.extend([(piso, fila, columna + 1), (piso, fila, columna + 2)])
     elif forma == "Z":
-        coordenadas.append((piso, fila, columna + 1))
-        coordenadas.append((piso, fila + 1, columna + 1))
-        coordenadas.append((piso, fila + 1, columna + 2))
+        coordenadas.extend([(piso, fila, columna + 1), (piso, fila + 1, columna + 1), (piso, fila + 1, columna + 2)])
 
     return coordenadas
 
 
+
 def calcular_tamaño_pieza(pieza):
-    for piezas_agrupadas, cantidad in cantidad_casilleros_por_pieza:
-        if pieza in piezas_agrupadas:
-            return cantidad
+    return CANTIDAD_CASILLEROS_POR_PIEZA.get(pieza, 0)
+
 
 
 def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
@@ -124,10 +97,12 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
     columnas_range = range(columnas)
 
 
-    # Asignación de variables y dominio: cada pieza tiene un dominio de posibles coordenadas
-    for pieza, forma in piezas:
-        variables.append(pieza)
-        dominio[pieza] = posibles_coordenadas_por_forma(forma, pisos_range, filas_range, columnas_range, filas, columnas)
+    # Asignación de variables 
+    variables = [pieza for pieza, forma in piezas]
+
+
+    # Asignación de dominio
+    dominio = {pieza: posibles_coordenadas_por_forma(forma, pisos_range, filas_range, columnas_range, filas, columnas) for pieza, forma in piezas}
 
 
 
@@ -135,7 +110,7 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
     # Función que verifica si una pieza está en el mismo piso que la salida
     def pieza_a_sacar_no_en_mismo_piso_que_salida(variables, valores):
         piso_salida, _, _ = salida
-        piso_pieza_sacar, _, _ = valores[0]
+        piso_pieza_sacar, _, _ = list(valores).pop()
 
         return piso_salida != piso_pieza_sacar
 
@@ -148,13 +123,7 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
     def no_en_mismo_casillero_salida(variables, valores):
         _, fila_salida, columna_salida = salida
 
-        for partes_pieza_cualquiera in valores:
-            _, fila_parte, columna_parte = partes_pieza_cualquiera
-
-            if fila_parte == fila_salida and columna_parte == columna_salida:
-                return False
-
-        return True
+        return all((fila_pieza != fila_salida) or (columna_pieza != columna_salida) for _, fila_pieza, columna_pieza in valores)
 
     restricciones.append((variables, no_en_mismo_casillero_salida))
 
@@ -163,15 +132,7 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
 
     # Función que verifica que todas las piezas estén en pisos distintos
     def todos_pisos_con_piezas(variables, valores):
-        pisos_asignados = []
-
-        for partes_pieza in valores:
-            primer_parte = partes_pieza
-            piso_primer_parte, _, _ = primer_parte
-
-            pisos_asignados.append(piso_primer_parte)
-
-        pisos_asignados = list(set(pisos_asignados))
+        pisos_asignados = {piso for piso, _, _ in valores}
 
         return len(pisos_asignados) == pisos
 
@@ -183,27 +144,12 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
     # Función que verifica que las piezas no se superpongan
     def no_se_superponen(variables, valores):
         coordenadas_todas_las_piezas = []
-        valores_list = list(valores)
 
-        for key, varibale in enumerate(variables):
-            for pieza_candidate, forma_candidate in piezas:
-                if pieza_candidate == varibale:
-                    coordenadas_todas_las_piezas.append(
-                        list(map(tuple, generar_pieza(
-                            forma_candidate, valores_list[key])))
-                    )
+        for variable, (pieza_candidate, forma_candidate) in zip(variables, piezas):
+            if variable == pieza_candidate:
+                coordenadas_todas_las_piezas.extend(generar_pieza(forma_candidate, valores[variables.index(variable)]))
 
-        vistos = set()
-        duplicados = set()
-
-        for sublist in coordenadas_todas_las_piezas:
-            for tupla in sublist:
-                if tupla in vistos:
-                    duplicados.add(tupla)
-                else:
-                    vistos.add(tupla)
-
-        return len(duplicados) == 0
+        return len(set(coordenadas_todas_las_piezas)) == len(coordenadas_todas_las_piezas)
 
     restricciones.append((variables, no_se_superponen))
     
@@ -212,21 +158,15 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
 
     # Función que verifica que ningún piso tiene que tener más del doble de piezas que ningún otro piso
     def no_doble_piezas_que_otro_piso(variables, valores):
-        coordenadas_piezas = list(valores)
+        pisos_piezas = [piso for piso, _, _ in valores]
         cantidad_piezas_en_pisos = [0] * pisos
 
-        for posiciones_piezas in coordenadas_piezas:
-            piso_pieza, _, _ = posiciones_piezas
-
+        for piso_pieza in pisos_piezas:
             cantidad_piezas_en_pisos[piso_pieza] += 1
 
-        min_piezas = 0
-        if cantidad_piezas_en_pisos:
-            min_piezas = min(cantidad_piezas_en_pisos)
-
-        for cantidad_piezas in cantidad_piezas_en_pisos:
-            if cantidad_piezas > min_piezas * 2:
-                return False
+        min_piezas = min(cantidad_piezas_en_pisos)
+        if any(cantidad_piezas > min_piezas * 2 for cantidad_piezas in cantidad_piezas_en_pisos):
+            return False
 
         return True
 
@@ -237,23 +177,20 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
 
     # La cantidad de casilleros que ocupan las piezas de un piso, no puede ser mayor a dos tercios
     def no_casilleros_ocupando_dos_tercios_del_piso(variables, valores):
-        coordenadas_piezas = list(valores)
+        valores_en_lista = list(valores)
+        
         cantidad_piezas_en_pisos = [0] * pisos
 
         for key, pieza_cualquiera in enumerate(variables):
-            piso_pieza, _, _ = coordenadas_piezas[key]
+            piso_pieza, _ , _ = valores_en_lista[key]
 
             for pieza, forma in piezas:
                 if pieza == pieza_cualquiera:
-                    cantidad_piezas_en_pisos[piso_pieza] += calcular_tamaño_pieza(
-                        forma)
+                    cantidad_piezas_en_pisos[piso_pieza] += calcular_tamaño_pieza(forma)
 
         total_casilleros = filas * columnas
-        for cantidad_piezas in cantidad_piezas_en_pisos:
-            if cantidad_piezas > total_casilleros * 2 / 3:
-                return False
+        return all(cantidad_piezas <= total_casilleros * 2 / 3 for cantidad_piezas in cantidad_piezas_en_pisos)
 
-        return True
 
     restricciones.append((variables, no_casilleros_ocupando_dos_tercios_del_piso))
 
@@ -281,26 +218,4 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
 
 
 if __name__ == "__main__":
-    armar_tablero()
-
-
-
-"""
-
-armar_tablero(
-    filas=3,
-    columnas=4,
-    pisos=2,
-    salida=(0, 0, 0),
-    piezas=[
-        ("p0", "T"),
-        ("p1", "O"),
-        ("p2", "Z"),
-        ("p3", "."),
-        ("p4", "-"),
-    ],
-    pieza_sacar="p0",
-)
-
-
-"""
+    armar_tablero() 

@@ -44,7 +44,7 @@ def posibles_coordenadas_por_forma(forma, pisos_range, filas_range, columnas_ran
         "L": lambda fila, columna: columna + 1 < columnas and fila + 1 < filas,
         "T": lambda fila, columna: columna + 2 < columnas and fila + 1 < filas,
         "O": lambda fila, columna: columna + 1 < columnas and fila + 1 < filas,
-        "I": lambda fila, columna: fila + 2 < columnas,
+        "I": lambda fila, columna: fila + 2 < filas,
         "-": lambda fila, columna: columna + 2 < columnas,
         "Z": lambda fila, columna: columna + 2 < columnas and fila + 1 < filas,
     }

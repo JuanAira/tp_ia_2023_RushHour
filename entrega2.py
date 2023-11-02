@@ -1,4 +1,5 @@
 from itertools import combinations
+from random import shuffle
 from simpleai.search import (
     CspProblem,
     backtrack,
@@ -104,7 +105,9 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
     # Asignación de dominio
     dominio = {pieza: posibles_coordenadas_por_forma(forma, pisos_range, filas_range, columnas_range, filas, columnas) for pieza, forma in piezas}
 
-
+    # Random dominio
+    for dom in dominio.values():
+        shuffle(dom)
 
 
     # Función que verifica si una pieza está en el mismo piso que la salida

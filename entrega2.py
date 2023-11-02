@@ -143,17 +143,29 @@ def armar_tablero(filas, columnas, pisos, salida, piezas, pieza_sacar):
 
     # Función que verifica que las piezas no se superpongan
     def no_se_superponen(variables, valores):
+        variable_1, variable_2 = variables
+
+        pieza1, pieza2 = valores
+        piso_pieza1, _, _ = pieza1
+        piso_pieza2, _, _ = pieza2
+
         coordenadas_todas_las_piezas = []
 
-        for variable, (pieza_candidate, forma_candidate) in zip(variables, piezas):
-            if variable == pieza_candidate:
-                coordenadas_todas_las_piezas.extend(generar_pieza(forma_candidate, valores[variables.index(variable)]))
+        if piso_pieza1 != piso_pieza2:
+            return True
+        else:
+            for pieza, forma in piezas:
+                if pieza == variable_1 :
+                    coordenadas_todas_las_piezas.extend(generar_pieza(forma, pieza1))
+                
+                if pieza == variable_2 :
+                    coordenadas_todas_las_piezas.extend(generar_pieza(forma, pieza2))
 
-        return len(set(coordenadas_todas_las_piezas)) == len(coordenadas_todas_las_piezas)
+            return len(coordenadas_todas_las_piezas) == len(set(coordenadas_todas_las_piezas))
 
-    restricciones.append((variables, no_se_superponen))
-    
-    
+    for pieza1, pieza2 in combinations(variables, 2):
+        restricciones.append(((pieza1,pieza2), no_se_superponen))
+
 
 
     # Función que verifica que ningún piso tiene que tener más del doble de piezas que ningún otro piso
